@@ -27,17 +27,17 @@ sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
 
 Inspect read quality profiles
 
-```{r}
+```{r, cache=TRUE}
 plotQualityProfile(fnFs[1:2])
 ```
 
-```{r}
+```{r, cache=TRUE}
 plotQualityProfile(fnRs[1:2])
 ```
 
 Filtrer et Rogner
 
-```{r}
+```{r, cache=TRUE}
 filtFs <- file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq.gz"))
 filtRs <- file.path(path, "filtered", paste0(sample.names, "_R_filt.fastq.gz"))
 names(filtFs) <- sample.names
@@ -46,7 +46,7 @@ names(filtRs) <- sample.names
 
 Paramètre de base
 
-```{r}
+```{r, cache=TRUE}
 out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(240,160),
               maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,
               compress=TRUE, multithread=FALSE)
@@ -56,24 +56,24 @@ head(out)
 
 Apprenez les taux d'erreur
 
-```{r}
+```{r, cache=TRUE}
 errF <- learnErrors(filtFs, multithread=TRUE)
 ```
-```{r}
+```{r, cache=TRUE}
 errR <- learnErrors(filtRs, multithread=TRUE)
 ```
 Visualisation des taux d'erreur
 
-```{r}
+```{r, cache=TRUE}
 plotErrors(errF, nominalQ=TRUE)
 ```
 Application de l'algo de DADA2 
 
-```{r}
+```{r, cache=TRUE}
 dadaFs <- dada(filtFs, err=errF, multithread=TRUE)
 ```
 
-```{r}
+```{r, cache=TRUE}
 dadaRs <- dada(filtRs, err=errR, multithread=TRUE)
 ```
 
@@ -81,5 +81,56 @@ Inspection
 
 ```{r}
 dadaFs[[1]]
+```
+Fusion des lectures appariées
+
+```{r, cache=TRUE}
+mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
+```
+
+Inspect the merger from the first list
+
+```{r, cache=TRUE}
+head(mergers[[1]])
+```
+
+Construction d'une table de séquence
+
+```{r}
+seqtab <- makeSequenceTable(mergers)
+dim(seqtab)
+```
+
+  Inspect distribution of sequence lenghs
+  
+```{r}
+table(nchar(getSequences(seqtab)))
+```
+
+Supprimer les chimères
+
+```{r}
+seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
+dim(seqtab.nochim)
+```
+```{r}
+sum(seqtab.nochim)/sum(seqtab)
+```
+
+Track reads through the pipeline
+
+```{r}
+getN <- function(x) sum(getUniques(x))
+track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
+# If processing a single sample, remove the sapply calls: e.g. replace sapply(dadaFs, getN) with getN(dadaFs)
+colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
+rownames(track) <- sample.names
+head(track)
+```
+
+Assign taxonomy
+
+```{r}
+taxa <- assignTaxonomy(seqtab.nochim, "~/tax/silva_nr_v132_train_set.fa.gz", multithread=TRUE)
 ```
 
