@@ -50,3 +50,17 @@ SAMPLENAME_XXX.fastq
 ``` r
 sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
 ```
+
+Inspect read quality profiles
+
+``` r
+plotQualityProfile(fnFs[1:2])
+```
+
+![](DADA2_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+
+``` r
+plotQualityProfile(fnRs[1:2])
+```
+
+![](DADA2_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->

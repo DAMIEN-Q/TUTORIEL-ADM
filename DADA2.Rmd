@@ -25,3 +25,13 @@ fnRs <- sort(list.files(path, pattern="_R2_001.fastq", full.names = TRUE))
 sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
 ```
 
+Inspect read quality profiles
+
+```{r}
+plotQualityProfile(fnFs[1:2])
+```
+
+```{r}
+plotQualityProfile(fnRs[1:2])
+```
+
