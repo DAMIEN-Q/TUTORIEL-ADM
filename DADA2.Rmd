@@ -1,0 +1,27 @@
+---
+title: "R Notebook"
+output: github_document
+---
+
+```{r}
+library(dada2)
+```
+
+```{r}
+path <- "~/TUTORIEL-ADM/MiSeq_SOP"
+list.files(path)
+```
+
+  Forward and reverse fastq filenames have format: SAMPLENAME_R1_001.fastq and SAMPLENAME_R2_001.fastq
+
+```{r}
+fnFs <- sort(list.files(path, pattern="_R1_001.fastq", full.names = TRUE))
+fnRs <- sort(list.files(path, pattern="_R2_001.fastq", full.names = TRUE))
+```
+
+  # Extract sample names, assuming filenames have format: SAMPLENAME_XXX.fastq
+  
+```{r}
+sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
+```
+
