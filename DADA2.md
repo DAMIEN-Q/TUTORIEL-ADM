@@ -283,3 +283,69 @@ sum(seqtab.nochim)/sum(seqtab)
 ```
 
     ## [1] 0.9640374
+
+Track reads through the pipeline
+
+``` r
+getN <- function(x) sum(getUniques(x))
+track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
+# If processing a single sample, remove the sapply calls: e.g. replace sapply(dadaFs, getN) with getN(dadaFs)
+colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
+rownames(track) <- sample.names
+head(track)
+```
+
+    ##        input filtered denoisedF denoisedR merged nonchim
+    ## F3D0    7793     7113      6976      6979   6540    6528
+    ## F3D1    5869     5299      5227      5239   5028    5017
+    ## F3D141  5958     5463      5331      5357   4986    4863
+    ## F3D142  3183     2914      2799      2830   2595    2521
+    ## F3D143  3178     2941      2822      2868   2553    2519
+    ## F3D144  4827     4312      4151      4228   3646    3507
+
+Assign taxonomy
+
+``` r
+taxa <- assignTaxonomy(seqtab.nochim, "~/TUTORIEL-ADM/silva_nr99_v138.2_toGenus_trainset.fa.gz?download=1", multithread=TRUE)
+```
+
+Examination
+
+``` r
+taxa.print <- taxa # Removing sequence rownames for display only
+rownames(taxa.print) <- NULL
+head(taxa.print)
+```
+
+    ##      Kingdom    Phylum         Class         Order           Family          
+    ## [1,] "Bacteria" "Bacteroidota" "Bacteroidia" "Bacteroidales" "Muribaculaceae"
+    ## [2,] "Bacteria" "Bacteroidota" "Bacteroidia" "Bacteroidales" "Muribaculaceae"
+    ## [3,] "Bacteria" "Bacteroidota" "Bacteroidia" "Bacteroidales" "Muribaculaceae"
+    ## [4,] "Bacteria" "Bacteroidota" "Bacteroidia" "Bacteroidales" "Muribaculaceae"
+    ## [5,] "Bacteria" "Bacteroidota" "Bacteroidia" "Bacteroidales" "Bacteroidaceae"
+    ## [6,] "Bacteria" "Bacteroidota" "Bacteroidia" "Bacteroidales" "Muribaculaceae"
+    ##      Genus        
+    ## [1,] NA           
+    ## [2,] NA           
+    ## [3,] NA           
+    ## [4,] NA           
+    ## [5,] "Bacteroides"
+    ## [6,] NA
+
+Evaluation de la précision
+
+``` r
+unqs.mock <- seqtab.nochim["Mock",]
+unqs.mock <- sort(unqs.mock[unqs.mock>0], decreasing=TRUE) # Drop ASVs absent in the Mock
+cat("DADA2 inferred", length(unqs.mock), "sample sequences present in the Mock community.\n")
+```
+
+    ## DADA2 inferred 20 sample sequences present in the Mock community.
+
+``` r
+mock.ref <- getSequences(file.path(path, "HMP_MOCK.v35.fasta"))
+match.ref <- sum(sapply(names(unqs.mock), function(x) any(grepl(x, mock.ref))))
+cat("Of those,", sum(match.ref), "were exact matches to the expected reference sequences.\n")
+```
+
+    ## Of those, 20 were exact matches to the expected reference sequences.
