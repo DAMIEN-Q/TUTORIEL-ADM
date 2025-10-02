@@ -1,11 +1,13 @@
 R Notebook
 ================
 
+    Installation du package "DADA2"
+
 ``` r
 library(dada2)
 ```
 
-    ## Loading required package: Rcpp
+    Chargement du package de données à traiter
 
 ``` r
 path <- "~/TUTORIEL-ADM/MiSeq_SOP"
@@ -36,22 +38,47 @@ list.files(path)
     ## [43] "mouse.dpw.metadata"            "mouse.time.design"            
     ## [45] "stability.batch"               "stability.files"
 
-Forward and reverse fastq filenames have format: SAMPLENAME_R1_001.fastq
-and SAMPLENAME_R2_001.fastq
+    Création des listes des fichiers Forward (fnFs) et Reverse (fnRs)
 
 ``` r
-fnFs <- sort(list.files(path, pattern="_R1_001.fastq", full.names = TRUE))
+fnFs <- sort # Les met dans l'ordre alphabétique
+        (list.files(path, pattern="_R1_001.fastq", # Cherche dans le dossier "path" tous les fichiers qui contiennent "_R1_001.fastq"
+                    full.names = TRUE)) # Garde le chemin complet
+```
+
+    ##  [1] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D0_S188_L001_R1_001.fastq"  
+    ##  [2] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D1_S189_L001_R1_001.fastq"  
+    ##  [3] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D141_S207_L001_R1_001.fastq"
+    ##  [4] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D142_S208_L001_R1_001.fastq"
+    ##  [5] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D143_S209_L001_R1_001.fastq"
+    ##  [6] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D144_S210_L001_R1_001.fastq"
+    ##  [7] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D145_S211_L001_R1_001.fastq"
+    ##  [8] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D146_S212_L001_R1_001.fastq"
+    ##  [9] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D147_S213_L001_R1_001.fastq"
+    ## [10] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D148_S214_L001_R1_001.fastq"
+    ## [11] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D149_S215_L001_R1_001.fastq"
+    ## [12] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D150_S216_L001_R1_001.fastq"
+    ## [13] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D2_S190_L001_R1_001.fastq"  
+    ## [14] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D3_S191_L001_R1_001.fastq"  
+    ## [15] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D5_S193_L001_R1_001.fastq"  
+    ## [16] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D6_S194_L001_R1_001.fastq"  
+    ## [17] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D7_S195_L001_R1_001.fastq"  
+    ## [18] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D8_S196_L001_R1_001.fastq"  
+    ## [19] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D9_S197_L001_R1_001.fastq"  
+    ## [20] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/Mock_S280_L001_R1_001.fastq"
+
+``` r
 fnRs <- sort(list.files(path, pattern="_R2_001.fastq", full.names = TRUE))
 ```
 
-\# Extract sample names, assuming filenames have format:
-SAMPLENAME_XXX.fastq
+    Nom de chaque échantillon extrait du nom du fichier
 
 ``` r
 sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
 ```
 
-Inspect read quality profiles
+    Visualisation des profils de qualité de lecture 
+      Qualité de lecture Forward
 
 ``` r
 plotQualityProfile(fnFs[1:2])
@@ -59,29 +86,68 @@ plotQualityProfile(fnFs[1:2])
 
 ![](DADA2_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
+C’est un diagnostic visuel pour voir la qualité des bases (nucléotides)
+le long des lectures.
+
+- Le fond gris représente la fréquence de chaque score de qualité à
+  chaque position de la lecture
+
+- La ligne verte correspond à la moyenne du score de qualité à chque
+  position
+
+- La ligne orange correspond au quartiles montrant la variabilité de la
+  qualité
+
+- La ligne rouge signifie la proportion des lectures qui atteignent
+  cette position (Illumina = plate, les lectures ont la même longeur)
+
+–\> Ici, bonne qualité de lecture forward
+
+    Qualité de lecture Reverse
+
 ``` r
 plotQualityProfile(fnRs[1:2])
 ```
 
 ![](DADA2_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
-Filtrer et Rogner
+Contrairement à la qualité des lectures forward, la qualité des lectures
+reverse sont beaucoup moindre. On observe une chute brutale de la
+qualité (en vert) ainsi que sa variation (en orange). Ce phénomène est
+normal avec Illumina et DADA2 à un algorithme assez robuste pour les
+séquences de moindre qualité en intégrant des informations de qualité
+dans son modèle d’erreur.
+
+    Filtrer et Rogner
 
 ``` r
-filtFs <- file.path(path, "filtered", paste0(sample.names, "_F_filt.fastq.gz"))
+filtFs <- file.path(path, "filtered", # Crée un chemin vers un sous-dosier "filtered" à l'intérieur du dossier 'path"
+                paste0(sample.names,"_F_filt.fastq.gz")) # Contruit le nom du fichier filtré pour chaque échantillon
+
 filtRs <- file.path(path, "filtered", paste0(sample.names, "_R_filt.fastq.gz"))
+
+#Attribution des noms des échantillons aux fichiers (fichier filtré lié à son échantillon)
 names(filtFs) <- sample.names
 names(filtRs) <- sample.names
 ```
 
-Paramètre de base
-
 ``` r
-out <- filterAndTrim(fnFs, filtFs, fnRs, filtRs, truncLen=c(240,160),
-              maxN=0, maxEE=c(2,2), truncQ=2, rm.phix=TRUE,
-              compress=TRUE, multithread=FALSE)
+# Prend en entrée les fichiers bruts "FASTQ" de forward et reverse, leur applique des filtres de qualité et les sauvegarde dans de nouveaux fichiers
 
-head(out)
+out <- filterAndTrim(fnFs, # Fichier brut Forward
+                     filtFs, # Fichier Forward filtré de sortie
+                     fnRs, # Fichier brut Reverse
+                     filtRs, # Fichier Reverse filtré de sortie
+                     truncLen=c(240,160), # Tronque les lectures Forward à 240 bases et Reverse à 160 bases
+              maxN=0, # Elimine toute lecture contenant un "N" (base inconnu)
+              maxEE=c(2,2), # Max d'erreurs attendues par lecture (2 pour Forward et 2 pour Reverse)
+              truncQ=2, # Coupe une lecture dès qu'un score de qualité tombe en dessous de 2
+              rm.phix=TRUE, # Supprime les lectures provenant du génome PhiX (contrôle pour Illumina)
+              compress=TRUE, # Enregistre les fichiers en ".fastq.gz"
+              multithread=FALSE
+              )
+
+head(out) # Affiche un tableau résumant le filtrage
 ```
 
     ##                               reads.in reads.out
@@ -92,10 +158,16 @@ head(out)
     ## F3D143_S209_L001_R1_001.fastq     3178      2941
     ## F3D144_S210_L001_R1_001.fastq     4827      4312
 
-Apprenez les taux d’erreur
+    Taux d'erreur de séquençage
+
+Les séquenceurs font parfois des erreurs, certaines bases lues ne sont
+pas les vraies bases DADA permet de distinguer les vraies séquences
+biologiques des séquences erronées.
+
+–\> DADA2 = modèle d’erreur PARAMETRIQUE
 
 ``` r
-errF <- learnErrors(filtFs, multithread=TRUE)
+errF <- learnErrors(filtFs, multithread=TRUE) # Apprend un modèle statistique des erreurs à partir des lectures filtrées Forward
 ```
 
     ## 33514080 total bases in 139642 reads from 20 samples will be used for learning the error rates.
