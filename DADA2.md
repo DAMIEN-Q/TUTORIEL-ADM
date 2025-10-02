@@ -224,8 +224,6 @@ mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
 
     ## 4269 paired-reads (in 20 unique pairings) successfully merged out of 4281 (in 28 pairings) input.
 
-Inspect the merger from the first list
-
 ``` r
 head(mergers[[1]])
 ```
