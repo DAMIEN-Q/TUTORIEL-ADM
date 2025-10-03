@@ -1,13 +1,13 @@
 R Notebook
 ================
 
-    Installation du package "DADA2"
+## **Installation du package “DADA2”**
 
 ``` r
 library(dada2)
 ```
 
-    Chargement du package de données à traiter
+## **Chargement du package de données à traiter**
 
 ``` r
 path <- "~/TUTORIEL-ADM/MiSeq_SOP"
@@ -38,7 +38,7 @@ list.files(path)
     ## [43] "mouse.dpw.metadata"            "mouse.time.design"            
     ## [45] "stability.batch"               "stability.files"
 
-    Création des listes des fichiers Forward (fnFs) et Reverse (fnRs)
+## **Création des listes des fichiers Forward (fnFs) et Reverse (fnRs)**
 
 ``` r
 fnFs <- sort # Les met dans l'ordre alphabétique
@@ -71,14 +71,15 @@ fnFs <- sort # Les met dans l'ordre alphabétique
 fnRs <- sort(list.files(path, pattern="_R2_001.fastq", full.names = TRUE))
 ```
 
-    Nom de chaque échantillon extrait du nom du fichier
+## **Nom de chaque échantillon extrait du nom du fichier**
 
 ``` r
 sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
 ```
 
-    Visualisation des profils de qualité de lecture 
-      Qualité de lecture Forward
+## **Visualisation des profils de qualité de lecture**
+
+### **Qualité de lecture Forward**
 
 ``` r
 plotQualityProfile(fnFs[1:2])
@@ -103,7 +104,7 @@ le long des lectures.
 
 –\> Ici, bonne qualité de lecture forward
 
-    Qualité de lecture Reverse
+## **Qualité de lecture Reverse**
 
 ``` r
 plotQualityProfile(fnRs[1:2])
@@ -118,7 +119,7 @@ normal avec Illumina et DADA2 à un algorithme assez robuste pour les
 séquences de moindre qualité en intégrant des informations de qualité
 dans son modèle d’erreur.
 
-    Filtrer et Rogner
+## **Filtrer et Rogner**
 
 ``` r
 filtFs <- file.path(path, "filtered", # Crée un chemin vers un sous-dosier "filtered" à l'intérieur du dossier 'path"
@@ -130,6 +131,11 @@ filtRs <- file.path(path, "filtered", paste0(sample.names, "_R_filt.fastq.gz"))
 names(filtFs) <- sample.names
 names(filtRs) <- sample.names
 ```
+
+Les fichiers ont maintenant des nom liés directement au nom de
+l’échantillon
+
+### **Filtrage et pré-traitement des séquences**
 
 ``` r
 # Prend en entrée les fichiers bruts "FASTQ" de forward et reverse, leur applique des filtres de qualité et les sauvegarde dans de nouveaux fichiers
@@ -158,10 +164,14 @@ head(out) # Affiche un tableau résumant le filtrage
     ## F3D143_S209_L001_R1_001.fastq     3178      2941
     ## F3D144_S210_L001_R1_001.fastq     4827      4312
 
-    Taux d'erreur de séquençage
+Le tableau montre clairement le nombre lectures avant filtrage
+(reads.in) et après filtrage (reads.out). Ici, on observe que la
+majorité des lectures est conservé (seulement un petite partie filtrée)
+
+## **Taux d’erreur de séquençage**
 
 Les séquenceurs font parfois des erreurs, certaines bases lues ne sont
-pas les vraies bases DADA2 permet de distinguer les vraies séquences
+pas les vraies bases. DADA2 permet de distinguer les vraies séquences
 biologiques des séquences erronées.
 
 –\> DADA2 = modèle d’erreur PARAMETRIQUE
@@ -178,7 +188,7 @@ errR <- learnErrors(filtRs, multithread=TRUE) # Apprend un modèle statistique d
 
     ## 22342720 total bases in 139642 reads from 20 samples will be used for learning the error rates.
 
-Visualisation des taux d’erreur
+## **Visualisation des taux d’erreur**
 
 ``` r
 plotErrors(errF, nominalQ=TRUE)
@@ -199,7 +209,7 @@ conséquent, les taux d’erreurs observés sont partiquement égaux aux taux
 d’erreur estimé. De plus, on observe bien une diminution du taux
 d’erreur plus le Q score augmente qui tend à suivre la ligne rouge.
 
-      Application de l'algo de DADA2 
+## **Application de l’algo de DADA2**
 
 ``` r
 dadaFs <- dada(filtFs, # Fichiers forward filtrés
@@ -263,7 +273,7 @@ dadaRs <- dada(filtRs, err=errR, multithread=TRUE)
 
 Idem que précédemment mais avec les lectures filtrées de Reverse
 
-      Inspection 
+## **Inspection**
 
 ``` r
 dadaFs[[1]]
@@ -276,7 +286,7 @@ dadaFs[[1]]
 Exemple : Pour le 1er échantillon, l’algorithme à identifier 128 vrais
 variants dans 1979 séquences
 
-      Fusion des lectures appariées
+## **Fusion des lectures appariées**
 
 ``` r
 # Reconstruction des séquences complètes des amplicons
@@ -352,7 +362,7 @@ l’échantillon. Les colonnes “nmismatch” (nombre de bases différentes
 dans la zone de chevauchement) et “nindel” (insertion ou délétions
 observées) permettent de voir si la fusion est cleen.
 
-      Construction d'une table de séquence
+## **Construction d’une table de séquence**
 
 ``` r
 seqtab <- makeSequenceTable(mergers) 
@@ -370,24 +380,47 @@ fusionnées.
 
 - Valeurs : Abondance des séquences
 
-La commande “dim()” permet de retourner la matrice de longueur 2 Ici, le
-1er chiffre correspond au nombre d’échantillon (20) et le 2ème chiffre
-au nombre d’ASV (293)
+La commande “dim()” permet de retourner la matrice de longueur 2. Ici,
+le 1er chiffre correspond au nombre d’échantillon (20) et le 2ème
+chiffre au nombre d’ASV (293)
 
-      Inspect distribution of sequence lenghs
+## **Inspect distribution of sequence lenghs**
 
 ``` r
-table(nchar(getSequences(seqtab)))
+table( # Compte combien de séquences ont une certaine longueur
+  nchar( # Calcule la longueur de chaque séquence
+    getSequences(seqtab) # Extrait tous les ASVs présentes dans "seqtab"
+        ))
 ```
 
     ## 
     ## 251 252 253 254 255 
     ##   1  88 196   6   2
 
-Supprimer les chimères
+Ici, on oberve que :
+
+- 1 séquence à une longueur de 251 nucléotides
+
+- 88 de 252 nucléotides
+
+- 196 de 253 nucléotides
+
+- 6 de 254 nucléotides
+
+- 2 de 255 nucléotides
+
+## **Supprimer les chimères**
+
+Une chimère est une séquence artificielle formée quand 2 fragments d’ADN
+s’hybrident partiellement et sont amplifiés comme une “fausse” séquence.
 
 ``` r
-seqtab.nochim <- removeBimeraDenovo(seqtab, method="consensus", multithread=TRUE, verbose=TRUE)
+seqtab.nochim <- removeBimeraDenovo( #Enlève les séquences chimériques
+  seqtab, # Table de séquence fusionnée
+  method="consensus", # Compare les séquences échantillon par échantillon et garde celles qui sont considérées "non-chimérique" dans la majorité des cas
+  multithread=TRUE, # Accélère le calcul
+  verbose=TRUE # Affiche un résumé
+  ) 
 ```
 
     ## Identified 61 bimeras out of 293 input sequences.
@@ -398,20 +431,36 @@ dim(seqtab.nochim)
 
     ## [1]  20 232
 
+Ici, 61 séquences sur les 293 ont été identifié comme des chimères
+
+## **Proportion de lecture “survivante” au filtrage de chimères**
+
 ``` r
 sum(seqtab.nochim)/sum(seqtab)
 ```
 
     ## [1] 0.9640374
 
-Track reads through the pipeline
+On observe que 96 % des lectures ont été conservé et que 4% sont des
+chimères
+
+## **Suivre les lectures à travers la pipeline**
 
 ``` r
-getN <- function(x) sum(getUniques(x))
-track <- cbind(out, sapply(dadaFs, getN), sapply(dadaRs, getN), sapply(mergers, getN), rowSums(seqtab.nochim))
-# If processing a single sample, remove the sapply calls: e.g. replace sapply(dadaFs, getN) with getN(dadaFs)
+getN <- function(x) sum(getUniques(x)) #Nombre de lectures uniques conservées pour 1 échantillon
+
+track <- cbind(out, # Lectures initiales + filtrées
+               sapply(dadaFs, getN), # Lectures après débruitage forward
+               sapply(dadaRs, getN), # Lectures après débruitage reverse
+               sapply(mergers, getN), # Lectures après fusion des séquences
+               rowSums(seqtab.nochim) # Lectures finales non chimériques
+               )
+
+# Nom pour les colonnes et lignes du tableau
 colnames(track) <- c("input", "filtered", "denoisedF", "denoisedR", "merged", "nonchim")
 rownames(track) <- sample.names
+
+# Visualisation
 head(track)
 ```
 
@@ -423,18 +472,28 @@ head(track)
     ## F3D143  3178     2941      2822      2868   2553    2519
     ## F3D144  4827     4312      4151      4228   3646    3507
 
-Assign taxonomy
+Permet une visualisation et traçabilité complète du pipeline DADA2. Il
+montre combien de lectures ont garde/perds à chaque étape et par
+échantillon. Normalement, on observe une petite perte à chaque étape ce
+qui est normal (ici, c’est le cas)
+
+## **Attribution d’une taxonomie**
+
+Comparaison des ASVs à une base de données de références pour attribuer
+une taxonomie
 
 ``` r
-taxa <- assignTaxonomy(seqtab.nochim, "~/TUTORIEL-ADM/silva_nr99_v138.2_toGenus_trainset.fa.gz?download=1", multithread=TRUE)
+taxa <- assignTaxonomy(seqtab.nochim,  "~/TUTORIEL-ADM/silva_nr99_v138.2_toGenus_trainset.fa.gz?download=1", 
+                       multithread=TRUE 
+                       )
 ```
 
-Examination
+## **Examination des attributions**
 
 ``` r
-taxa.print <- taxa # Removing sequence rownames for display only
-rownames(taxa.print) <- NULL
-head(taxa.print)
+taxa.print <- taxa # Copie l'objet "taxa" pour l'affichage
+rownames(taxa.print) <- NULL # Supprime les noms de lignes (séquences d'ADN brutes)
+head(taxa.print) # Affiche les 6 premières lignes
 ```
 
     ##      Kingdom    Phylum         Class         Order           Family          
@@ -452,20 +511,48 @@ head(taxa.print)
     ## [5,] "Bacteroides"
     ## [6,] NA
 
-Evaluation de la précision
+Les *Bacteroidota* sont très bien représenté parmi les taxons les plus
+abondants.
+
+## **Evaluation de la précision (échantillon de contrôle “Mock”)**
 
 ``` r
-unqs.mock <- seqtab.nochim["Mock",]
-unqs.mock <- sort(unqs.mock[unqs.mock>0], decreasing=TRUE) # Drop ASVs absent in the Mock
-cat("DADA2 inferred", length(unqs.mock), "sample sequences present in the Mock community.\n")
+unqs.mock <- seqtab.nochim["Mock",] # Sélectionne uniquement la ligne correspondant à l'échantillon "Mock"
+
+unqs.mock <- sort(unqs.mock[unqs.mock>0], # Ne garde que les ASVs présent
+                  decreasing=TRUE # Trie les ASVs par abondance décroissante
+                  ) 
+
+cat("DADA2 inferred", length(unqs.mock), # Nombre d'ASVs différentes détectées dans l'échantillon "Mock"
+    "sample sequences present in the Mock community.\n")
 ```
 
     ## DADA2 inferred 20 sample sequences present in the Mock community.
 
+Permet de vérifier la précision et la sensibilité de DADA2 sur le
+contrôle “Mock” connu. Ici, DADA2 a identifié 20 séquences d’échantillon
+présentes dans la communauté Mock.
+
+## **Vérification des séquences détectées dans Mock**
+
 ``` r
-mock.ref <- getSequences(file.path(path, "HMP_MOCK.v35.fasta"))
-match.ref <- sum(sapply(names(unqs.mock), function(x) any(grepl(x, mock.ref))))
+# Extrait toutes les séquences d'ADN présentes dans le fichier "FASTA" de référence
+mock.ref <- getSequences( file.path(path, "HMP_MOCK.v35.fasta"))
+
+# Comparer les ASVs détectées aux séquences de référence
+match.ref <- sum( # Combien de séquences détectées sont exactement présentes dans le fichier de référence
+  sapply(
+  names(unqs.mock), # Séquences des ASVs détectées dans "Mock"
+  function(x) any( # Renvoie TRUE si au moins 1 correspondance est trouvée
+    grepl(x, mock.ref) # Vérifie si cette séquence existe exactement dans les séquences de référence
+                              )))
+
 cat("Of those,", sum(match.ref), "were exact matches to the expected reference sequences.\n")
 ```
 
     ## Of those, 20 were exact matches to the expected reference sequences.
+
+20 séquences détectées par DADA2 et 20 séquences correspondent
+exactement aux séquences connues de “Mock”. Cela signifie que le taux
+d’erreur est de 0 % et qu’il n’y a pas d’erreur ni contaminant dans le
+contrôle et dans les autres échantilllons.
