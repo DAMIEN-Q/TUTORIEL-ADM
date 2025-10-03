@@ -161,7 +161,7 @@ head(out) # Affiche un tableau résumant le filtrage
     Taux d'erreur de séquençage
 
 Les séquenceurs font parfois des erreurs, certaines bases lues ne sont
-pas les vraies bases DADA permet de distinguer les vraies séquences
+pas les vraies bases DADA2 permet de distinguer les vraies séquences
 biologiques des séquences erronées.
 
 –\> DADA2 = modèle d’erreur PARAMETRIQUE
@@ -173,7 +173,7 @@ errF <- learnErrors(filtFs, multithread=TRUE) # Apprend un modèle statistique d
     ## 33514080 total bases in 139642 reads from 20 samples will be used for learning the error rates.
 
 ``` r
-errR <- learnErrors(filtRs, multithread=TRUE)
+errR <- learnErrors(filtRs, multithread=TRUE) # Apprend un modèle statistique des erreurs à partir des lectures filtrées Reverse
 ```
 
     ## 22342720 total bases in 139642 reads from 20 samples will be used for learning the error rates.
@@ -187,11 +187,25 @@ plotErrors(errF, nominalQ=TRUE)
     ## Warning: Transformation introduced infinite values in continuous y-axis
     ## Transformation introduced infinite values in continuous y-axis
 
-![](DADA2_files/figure-gfm/unnamed-chunk-11-1.png)<!-- --> Application
-de l’algo de DADA2
+![](DADA2_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
+
+- Les points correspondent aux taux d’erreurs observés
+- La ligne noire correspond au taux d’erreur estimé par l’algorithme
+- La ligne rouge correspond au taux d’erreur attendu selon le Q score
+  (taux d’erreur théorique selon le Q score).
+
+On observe bien que les points suivent bien la ligne noire et que par
+conséquent, les taux d’erreurs observés sont partiquement égaux aux taux
+d’erreur estimé. De plus, on observe bien une diminution du taux
+d’erreur plus le Q score augmente qui tend à suivre la ligne rouge.
+
+      Application de l'algo de DADA2 
 
 ``` r
-dadaFs <- dada(filtFs, err=errF, multithread=TRUE)
+dadaFs <- dada(filtFs, # Fichiers forward filtrés
+               err=errF, # Modèle d'erreurs appris précédemment
+               multithread=TRUE # Permet d'utiliser plusieurs coeurs en même temps pour aller plus vite
+               )
 ```
 
     ## Sample 1 - 7113 reads in 1979 unique sequences.
@@ -214,6 +228,13 @@ dadaFs <- dada(filtFs, err=errF, multithread=TRUE)
     ## Sample 18 - 4871 reads in 1382 unique sequences.
     ## Sample 19 - 6504 reads in 1709 unique sequences.
     ## Sample 20 - 4314 reads in 897 unique sequences.
+
+Pour chaque lecture filtrée, l’algorithme va comparer la séquence
+observée au modèle d’erreurs. Il corrige les lectures en tenant compte
+des probabilités d’erreurs : - Si une différence peut-être expliquée par
+une erreur de séquençage = Séquence corrigée - Si une différence est
+trop grande pour être une simple erreur = Séquence considérée comme une
+vraie variante biologique (ASV)
 
 ``` r
 dadaRs <- dada(filtRs, err=errR, multithread=TRUE)
@@ -240,7 +261,9 @@ dadaRs <- dada(filtRs, err=errR, multithread=TRUE)
     ## Sample 19 - 6504 reads in 1502 unique sequences.
     ## Sample 20 - 4314 reads in 732 unique sequences.
 
-Inspection
+Idem que précédemment mais avec les lectures filtrées de Reverse
+
+      Inspection 
 
 ``` r
 dadaFs[[1]]
@@ -250,10 +273,19 @@ dadaFs[[1]]
     ## 128 sequence variants were inferred from 1979 input unique sequences.
     ## Key parameters: OMEGA_A = 1e-40, OMEGA_C = 1e-40, BAND_SIZE = 16
 
-Fusion des lectures appariées
+Exemple : Pour le 1er échantillon, l’algorithme à identifier 128 vrais
+variants dans 1979 séquences
+
+      Fusion des lectures appariées
 
 ``` r
-mergers <- mergePairs(dadaFs, filtFs, dadaRs, filtRs, verbose=TRUE)
+# Reconstruction des séquences complètes des amplicons
+mergers <- mergePairs(dadaFs, # ASVs du brin forward
+                      filtFs, # Fichiers FASTQ filtrés forward
+                      dadaRs, # ASVs du brin reverse
+                      filtRs, # Fichiers FASTQ filtrés reverse
+                      verbose=TRUE # Affiche des détails pendant l'exécution
+                      )
 ```
 
     ## 6540 paired-reads (in 107 unique pairings) successfully merged out of 6891 (in 197 pairings) input.
@@ -315,16 +347,34 @@ head(mergers[[1]])
     ## 5       345       5       6    148         0      0      1   TRUE
     ## 6       282       6       5    148         0      0      2   TRUE
 
-Construction d’une table de séquence
+Permet d’observer les vraies séquences les plus abondantes dans
+l’échantillon. Les colonnes “nmismatch” (nombre de bases différentes
+dans la zone de chevauchement) et “nindel” (insertion ou délétions
+observées) permettent de voir si la fusion est cleen.
+
+      Construction d'une table de séquence
 
 ``` r
-seqtab <- makeSequenceTable(mergers)
+seqtab <- makeSequenceTable(mergers) 
 dim(seqtab)
 ```
 
     ## [1]  20 293
 
-Inspect distribution of sequence lenghs
+Permet de créer une table de séquence qui prend en entrée les séquences
+fusionnées.
+
+- Lignes : Echantillons
+
+- Colonnes : ASVs
+
+- Valeurs : Abondance des séquences
+
+La commande “dim()” permet de retourner la matrice de longueur 2 Ici, le
+1er chiffre correspond au nombre d’échantillon (20) et le 2ème chiffre
+au nombre d’ASV (293)
+
+      Inspect distribution of sequence lenghs
 
 ``` r
 table(nchar(getSequences(seqtab)))
