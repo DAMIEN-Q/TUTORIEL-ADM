@@ -41,33 +41,10 @@ list.files(path)
 ## **Création des listes des fichiers Forward (fnFs) et Reverse (fnRs)**
 
 ``` r
-fnFs <- sort # Les met dans l'ordre alphabétique
-        (list.files(path, pattern="_R1_001.fastq", # Cherche dans le dossier "path" tous les fichiers qui contiennent "_R1_001.fastq"
+fnFs = sort(# Les met dans l'ordre alphabétique
+  list.files(path, pattern="_R1_001.fastq", # Cherche dans le dossier "path" tous les fichiers qui contiennent "_R1_001.fastq"
                     full.names = TRUE)) # Garde le chemin complet
-```
 
-    ##  [1] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D0_S188_L001_R1_001.fastq"  
-    ##  [2] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D1_S189_L001_R1_001.fastq"  
-    ##  [3] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D141_S207_L001_R1_001.fastq"
-    ##  [4] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D142_S208_L001_R1_001.fastq"
-    ##  [5] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D143_S209_L001_R1_001.fastq"
-    ##  [6] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D144_S210_L001_R1_001.fastq"
-    ##  [7] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D145_S211_L001_R1_001.fastq"
-    ##  [8] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D146_S212_L001_R1_001.fastq"
-    ##  [9] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D147_S213_L001_R1_001.fastq"
-    ## [10] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D148_S214_L001_R1_001.fastq"
-    ## [11] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D149_S215_L001_R1_001.fastq"
-    ## [12] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D150_S216_L001_R1_001.fastq"
-    ## [13] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D2_S190_L001_R1_001.fastq"  
-    ## [14] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D3_S191_L001_R1_001.fastq"  
-    ## [15] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D5_S193_L001_R1_001.fastq"  
-    ## [16] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D6_S194_L001_R1_001.fastq"  
-    ## [17] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D7_S195_L001_R1_001.fastq"  
-    ## [18] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D8_S196_L001_R1_001.fastq"  
-    ## [19] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/F3D9_S197_L001_R1_001.fastq"  
-    ## [20] "/home/rstudio/TUTORIEL-ADM/MiSeq_SOP/Mock_S280_L001_R1_001.fastq"
-
-``` r
 fnRs <- sort(list.files(path, pattern="_R2_001.fastq", full.names = TRUE))
 ```
 
@@ -241,10 +218,13 @@ dadaFs <- dada(filtFs, # Fichiers forward filtrés
 
 Pour chaque lecture filtrée, l’algorithme va comparer la séquence
 observée au modèle d’erreurs. Il corrige les lectures en tenant compte
-des probabilités d’erreurs : - Si une différence peut-être expliquée par
-une erreur de séquençage = Séquence corrigée - Si une différence est
-trop grande pour être une simple erreur = Séquence considérée comme une
-vraie variante biologique (ASV)
+des probabilités d’erreurs :
+
+- Si une différence peut-être expliquée par une erreur de séquençage =
+  Séquence corrigée
+
+- Si une différence est trop grande pour être une simple erreur =
+  Séquence considérée comme une vraie variante biologique (ASV)
 
 ``` r
 dadaRs <- dada(filtRs, err=errR, multithread=TRUE)
@@ -384,7 +364,7 @@ La commande “dim()” permet de retourner la matrice de longueur 2. Ici,
 le 1er chiffre correspond au nombre d’échantillon (20) et le 2ème
 chiffre au nombre d’ASV (293)
 
-## **Inspect distribution of sequence lenghs**
+### **Inspection de la distribution des longueurs des séquences**
 
 ``` r
 table( # Compte combien de séquences ont une certaine longueur
@@ -511,7 +491,7 @@ head(taxa.print) # Affiche les 6 premières lignes
     ## [5,] "Bacteroides"
     ## [6,] NA
 
-Les *Bacteroidota* sont très bien représenté parmi les taxons les plus
+Les *Bacteroidota* sont très bien représentés parmi les taxons les plus
 abondants.
 
 ## **Evaluation de la précision (échantillon de contrôle “Mock”)**

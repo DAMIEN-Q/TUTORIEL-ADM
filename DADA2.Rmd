@@ -18,8 +18,8 @@ list.files(path)
 ## **Création des listes des fichiers Forward (fnFs) et Reverse (fnRs)**
 
 ```{r, cache=TRUE}
-fnFs <- sort # Les met dans l'ordre alphabétique
-        (list.files(path, pattern="_R1_001.fastq", # Cherche dans le dossier "path" tous les fichiers qui contiennent "_R1_001.fastq"
+fnFs = sort(# Les met dans l'ordre alphabétique
+  list.files(path, pattern="_R1_001.fastq", # Cherche dans le dossier "path" tous les fichiers qui contiennent "_R1_001.fastq"
                     full.names = TRUE)) # Garde le chemin complet
 
 fnRs <- sort(list.files(path, pattern="_R2_001.fastq", full.names = TRUE))
