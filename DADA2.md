@@ -1,4 +1,4 @@
-Tutoriel DADA 2 (CC1 de ADM)
+Tutoriel DADA2 (CC1 de ADM)
 ================
 
 ## **Installation du package “DADA2”**

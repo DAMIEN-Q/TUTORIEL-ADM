@@ -1,5 +1,5 @@
 ---
-title: "Tutoriel DADA 2 (CC1 de ADM)"
+title: "Tutoriel DADA2 (CC1 de ADM)"
 output: github_document
 ---
 ## **Installation du package "DADA2"**
@@ -34,7 +34,7 @@ sample.names <- sapply(strsplit(basename(fnFs), "_"), `[`, 1)
 ## **Visualisation des profils de qualité de lecture**
 ### **Qualité de lecture Forward** ### 
   
-```{r,}
+```{r,cache=FALSE}
 plotQualityProfile(fnFs[1:2])
 ```
 
@@ -52,7 +52,7 @@ C’est un diagnostic visuel pour voir la qualité des bases (nucléotides) le l
 
 ## **Qualité de lecture Reverse**
     
-```{r,}
+```{r,cache=FALSE}
 plotQualityProfile(fnRs[1:2])
 ```
 
@@ -111,7 +111,7 @@ errR <- learnErrors(filtRs, multithread=TRUE) # Apprend un modèle statistique d
 ```
 ## **Visualisation des taux d'erreur** 
 
-```{r,}
+```{r,cache=FALSE}
 plotErrors(errF, nominalQ=TRUE)
 ```
 
