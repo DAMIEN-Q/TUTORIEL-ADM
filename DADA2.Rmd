@@ -1,5 +1,5 @@
 ---
-title: "R Notebook"
+title: "Tutoriel DADA 2 (CC1 de ADM)"
 output: github_document
 ---
 ## **Installation du package "DADA2"**
@@ -289,7 +289,7 @@ Permet de vérifier la précision et la sensibilité de DADA2 sur le contrôle "
 
 ## **Vérification des séquences détectées dans Mock**
 
-```{r}
+```{r,cache=TRUE}
 # Extrait toutes les séquences d'ADN présentes dans le fichier "FASTA" de référence
 mock.ref <- getSequences( file.path(path, "HMP_MOCK.v35.fasta"))
 

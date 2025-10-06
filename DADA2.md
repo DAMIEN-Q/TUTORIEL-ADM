@@ -1,4 +1,4 @@
-R Notebook
+Tutoriel DADA 2 (CC1 de ADM)
 ================
 
 ## **Installation du package “DADA2”**
