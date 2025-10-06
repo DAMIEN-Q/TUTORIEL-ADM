@@ -7,6 +7,8 @@ Tutoriel DADA 2 (CC1 de ADM)
 library(dada2)
 ```
 
+    ## Loading required package: Rcpp
+
 ## **Chargement du package de données à traiter**
 
 ``` r
